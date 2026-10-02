@@ -12,11 +12,59 @@
         <label for="email">Email:</label>
         <input type="email" id="email" placeholder="priquitosempena@gmail.com" required>
         <label for = "senha">Senha:</label>
-        <input type = "password" id = senha required class = "input-texto">
+        <input type = "password" id="senha" required class = "input-texto">
         <p>Não possui cadastro? Cadastre-se <a href="./index.html">clicando aqui</a></p>
 
 
         <input type="submit" value="Entrar" class="btn_enviar"> 
         </form>
+
+        <script>
+            function pegar_dados() {
+                const dados = {
+                    email: document.getElementById("email").value,
+                    senha: document.getElementById("senha").value
+                }
+                return dados
+            }
+            const form = document.getElementById("form_login")
+            const btn_enviar = document.getElementById("btn_enviar")
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault() // evita o recarregamento da página
+                btn_enviar.disabled = true
+                btn_enviar.value = "Entrando..."
+                const dados = pegar_dados()
+                try {
+                    const resposta = await fetch(
+                        "http://localhost:3000/login", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(dados)
+                        }
+                    )
+                    const json_resposta = await resposta.json()
+                    if (!resposta.ok) {
+                        if (resposta.status == 401) {
+                            throw new Error(json_resposta.msg)
+                        } else {
+                            throw new Error("Erro inesperado na API")
+                        }
+                    }
+                    localStorage.setItem("nome_cliente", json_resposta.nome)
+                    localStorage.setItem("token", json_resposta.token)
+                    window.location.href = "index.html"
+                } catch (error) {
+                    mostrarToast("❌ Falha ao enviar. " + error, "bg-danger");
+    
+                } finally {
+                    btn_enviar.disabled = false
+                    btn_enviar.value = "Entrar"
+                }
+            })
+        </script>
+    
+        <script src="./pages.js"></script>
+    
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
