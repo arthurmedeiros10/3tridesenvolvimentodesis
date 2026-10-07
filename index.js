@@ -1,218 +1,99 @@
-const express = require("express");
-const app = express();
-const port = process.env.PORT || 3000;
-app.use(express.json());
+const dotenv = require("dotenv")
+dotenv.config()
 
-const db = require("./db");
-const bcrypt = require("bcrypt");
+const express = require("express")
+const app = express()
+const port = process.env.API_PORT
+app.use(express.json())
 
+const db = require("./db")
 
+const bcrypt = require("bcrypt")
+
+const jwt = require("jsonwebtoken")
+
+const cors = require("cors")
+app.use(cors())
 
 app.post("/cliente", async (req, res) => {
     try {
-        const dados = req.body;
-        
-        if (!dados.nome || !dados.cpf || !dados.email || !dados.celular || !dados.senha) {
-            return res.status(400).json({ 
-                erro: "Todos os campos são obrigatórios: nome, cpf, email, celular, senha" 
-            });
-        }
-
-        const senhaCript = bcrypt.hashSync(dados.senha, 10);
-        dados.senha = senhaCript;
+        const cliente = req.body
+        const senhaCript = bcrypt.hashSync(cliente.senha, 10)
+        cliente.senha = senhaCript
 
         const resultado = await db.pool.query(
-            `INSERT INTO cliente (nome, cpf, celular, email, senha) 
-             VALUES (?, ?, ?, ?, ?)`,
-            [dados.nome, dados.cpf, dados.celular, dados.email, dados.senha]
-        );
-
+            `INSERT INTO cliente (
+                nome, cpf, celular, email, senha
+            ) VALUES ( ?, ?, ?, ?, ? )`,
+            [cliente.nome, cliente.cpf, cliente.celular,
+             cliente.email, cliente.senha]
+        )
         res.status(201).json({
-            mensagem: "Cliente cadastrado com sucesso!",
-            id: resultado[0].insertId
-        });
-
-    } catch (erro) {
-        if (erro.code === 'ER_DUP_ENTRY') {
-            return res.status(409).json({ erro: "CPF já cadastrado no sistema" });
-        }
-        res.status(500).json({ erro: erro.message });
+            msg: "Cliente cadastrado, ID = " + resultado[0].insertId
+        })
+    } catch (error) {
+        res.status(500).json({erro: error.message})
     }
-});
+})
 
-app.get("/cliente", async (req, res) => {
+
+app.post("/login", async (req,res) => {
     try {
-        const [clientes] = await db.pool.query(
-            `SELECT id, nome, cpf, celular, email 
-             FROM cliente 
-             ORDER BY nome`
-        );
-        res.status(200).json(clientes);
-    } catch (erro) {
-        res.status(500).json({ erro: erro.message });
-    }
-});
+        const user = req.body
+        const resultado = await db.pool.query(
+            "SELECT id, nome, email, senha FROM cliente WHERE email = ?", [user.email]
+        )
+        const dados_bd = resultado[0][0]
+        if(!dados_bd) {
+            return res.status(401).json({msg: "Email não cadastrado!"})
+        }
 
-app.get("/cliente/:cpf", async (req, res) => {
-    const cpf = req.params.cpf;
-    
+        const senha_valida = await bcrypt.compare(user.senha, dados_bd.senha)
+
+        if(!senha_valida) {
+            return res.status(401).json({msg: "Credenciais inválidas!"})
+        }
+
+        const payload = {
+            id: dados_bd.id,
+            email: dados_bd.email
+        } 
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '2m' })
+        return res.status(200).json({nome: dados_bd.nome, token: token})
+
+    } catch (error) {
+        res.status(500).json({erro: error.message})
+    }
+})
+
+
+
+app.get("/cliente/perfil", autenticar, async (req, res)=>{
     try {
-        const [cliente] = await db.pool.query(
-            `SELECT id, nome, cpf, celular, email 
-             FROM cliente 
-             WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = ?`,
-            [cpf]
-        );
-
-        if (cliente.length === 0) {
-            return res.status(404).json({ mensagem: "Cliente não encontrado" });
-        }
-
-        res.status(200).json(cliente[0]);
-    } catch (erro) {
-        res.status(500).json({ erro: erro.message });
+        const id = req.usuario.id
+        const result = await db.pool.query("SELECT * FROM cliente WHERE id = ?", [id]);
+        const perfil = result[0][0]
+        delete perfil.senha
+        res.status(200).json(perfil)
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro interno' });
+        throw err;
     }
-});
-
-app.put("/cliente/:cpf", async (req, res) => {
-    const cpf = req.params.cpf;
-    const dadosNovos = req.body;
-
-    try {
-        const [clienteExistente] = await db.pool.query(
-            `SELECT * FROM cliente 
-             WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = ?`,
-            [cpf]
-        );
-
-        if (clienteExistente.length === 0) {
-            return res.status(404).json({ mensagem: "Cliente não encontrado" });
-        }
-
-        if (dadosNovos.senha) {
-            dadosNovos.senha = bcrypt.hashSync(dadosNovos.senha, 10);
-        }
-        const camposAtualizados = [];
-        const valores = [];
-
-        const camposPermitidos = ['nome', 'cpf', 'celular', 'email', 'senha'];
-        for (const campo of camposPermitidos) {
-            if (dadosNovos[campo] !== undefined) {
-                camposAtualizados.push(`${campo} = ?`);
-                valores.push(dadosNovos[campo]);
-            }
-        }
-
-        if (camposAtualizados.length === 0) {
-            return res.status(400).json({ 
-                mensagem: "Nenhum campo válido para atualizar" 
-            });
-        }
-
-        valores.push(cpf);
-
-        const query = `
-            UPDATE cliente 
-            SET ${camposAtualizados.join(', ')}
-            WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = ?
-        `;
-
-        await db.pool.query(query, valores);
-        
-        res.status(200).json({ 
-            mensagem: "Cliente atualizado com sucesso!" 
-        });
-
-    } catch (erro) {
-        if (erro.code === 'ER_DUP_ENTRY') {
-            return res.status(409).json({ erro: "CPF já cadastrado por outro cliente" });
-        }
-        res.status(500).json({ erro: erro.message });
-    }
-});
-
-app.delete("/cliente/:cpf", async (req, res) => {
-    const cpf = req.params.cpf;
-
-    try {
-        const [clienteExistente] = await db.pool.query(
-            `SELECT c.*, COUNT(compra.id_venda) as total_compras
-             FROM cliente c
-             LEFT JOIN compra ON c.id = compra.idCliente
-             WHERE REPLACE(REPLACE(REPLACE(c.cpf, '.', ''), '-', ''), ' ', '') = ?
-             GROUP BY c.id`,
-            [cpf]
-        );
-
-        if (clienteExistente.length === 0) {
-            return res.status(404).json({ mensagem: "Cliente não encontrado" });
-        }
-
-        if (clienteExistente[0].total_compras > 0) {
-            return res.status(400).json({ 
-                mensagem: "Não é possível excluir cliente que possui compras registradas" 
-            });
-        }
-
-        await db.pool.query(
-            `DELETE FROM cliente 
-             WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = ?`,
-            [cpf]
-        );
-
-        res.status(200).json({ 
-            mensagem: "Cliente excluído com sucesso!" 
-        });
-
-    } catch (erro) {
-        res.status(500).json({ erro: erro.message });
-    }
-});
-
-
-app.get("/cliente/id/:id", async (req, res) => {
-    const id = req.params.id;
-    
-    try {
-        const [cliente] = await db.pool.query(
-            `SELECT id, nome, cpf, celular, email 
-             FROM cliente 
-             WHERE id = ?`,
-            [id]
-        );
-
-        if (cliente.length === 0) {
-            return res.status(404).json({ mensagem: "Cliente não encontrado" });
-        }
-
-        res.status(200).json(cliente[0]);
-    } catch (erro) {
-        res.status(500).json({ erro: erro.message });
-    }
-});
-
-app.get("/cliente/buscar/:nome", async (req, res) => {
-    const nome = req.params.nome;
-    
-    try {
-        const [clientes] = await db.pool.query(
-            `SELECT id, nome, cpf, celular, email 
-             FROM cliente 
-             WHERE nome LIKE ? 
-             ORDER BY nome`,
-            [`%${nome}%`]
-        );
-
-        if (clientes.length === 0) {
-            return res.status(404).json({ mensagem: "Nenhum cliente encontrado" });
-        }
-
-        res.status(200).json(clientes);
-    } catch (erro) {
-        res.status(500).json({ erro: erro.message });
-    }
-});
+})
 
 app.listen(port, () => {
     console.log("API rodando na porta " + port)
 })
+
+function autenticar(req, res, next){
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+    if (token == null){
+        return res.status(401).json({erro: "Token não enviado, usar Authorization Bearer <token>"})
+    }
+    jwt.verify(token, process.env.JWT_SECRET, (err, usuario) => {
+        if (err) return res.status(403).json({erro: "Token inválido"})
+        req.usuario = usuario
+        next()
+    })   
+}
