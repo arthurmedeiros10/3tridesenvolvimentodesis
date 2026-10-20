@@ -1,153 +1,517 @@
-main {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: calc(100vh - 160px);
-  background-color: #f8f9fa;
-  padding: 20px;
-}
-
-.grid-produtos {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  width: 100%;
-  max-width: 1200px;
-}
-
-.card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-top: 5px solid #dc3545;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 6px 18px rgba(220, 53, 69, 0.35);
-  transform: translateY(-4px);
-}
-
-.card img {
-  width: 100%;
-  height: 150px;
-  object-fit: contain;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-.nome-produto {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #dc3545;
-}
-
-.info {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.descricao {
-  font-size: 14px;
-  color: #6c757d;
-  flex: 1;
-}
-
-.preco {
-  font-size: 18px;
-  font-weight: bold;
-  color: #dc3545;
-  margin-left: 10px;
-}
-
-form {
-  background: #ffffff;
-  padding: 30px 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(220, 53, 69, 0.25);
-  border-top: 6px solid #dc3545;
-  width: 100%;
-  max-width: 500px;
-}
-
-form h1 {
-  color: #dc3545;
-}
-
-label {
-  font-weight: 600;
-  margin-bottom: 5px;
-  color: #b02a37;
-}
-
-.input_texto,
-select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ced4da;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.input_texto:focus,
-select:focus {
-  outline: none;
-  border-color: #dc3545;
-  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-}
-
-.input_texto[readonly] {
-  background-color: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-  border: 1px solid #ced4da;
-}
-
-select:disabled {
-  background-color: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-  border: 1px solid #ced4da;
-}
-
-.btn_enviar {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: #dc3545;
-  color: #ffffff;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.btn_enviar:hover {
-  background-color: #b02a37;
-}
-
-.btn_enviar:disabled {
-  background-color: #e4606d;
-  cursor: not-allowed;
-}
-
-form a {
-  color: #dc3545;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-form a:hover {
-  color: #b02a37;
-  text-decoration: underline;
-}
-
+/* ============================================================
+   VARIÁVEIS GLOBAIS
+   ============================================================ */
+   :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --accent: #ec4899;
+    --accent-dark: #db2777;
+    --bg-soft: #eef2ff;
+    --bg-softer: #faf5ff;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 8px 24px rgba(99, 102, 241, 0.18);
+    --shadow-lg: 0 16px 40px rgba(99, 102, 241, 0.25);
+    --radius: 14px;
+  
+    /* Sidebar */
+    --sidebar-width: 240px;
+    --sidebar-bg: linear-gradient(180deg, #1e1b4b 0%, #312e81 55%, #4f46e5 100%);
+    --sidebar-text: #e0e7ff;
+    --sidebar-text-muted: #a5b4fc;
+    --sidebar-hover: rgba(129, 140, 248, 0.18);
+    --sidebar-active: rgba(236, 72, 153, 0.22);
+  }
+  
+  /* ============================================================
+     HEADER — SIDEBAR VERTICAL FIXA (ESQUERDA)
+     ============================================================ */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    z-index: 1030;
+    background: var(--sidebar-bg);
+    box-shadow: 4px 0 24px rgba(30, 27, 75, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  /* Navbar ocupa toda a altura da sidebar */
+  header .navbar {
+    flex: 1;
+    width: 100%;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  
+  /* Container interno: empilha tudo verticalmente, colado na logo */
+  header .navbar > .container-fluid {
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    padding: 20px 14px !important;
+    height: 100%;
+    gap: 0 !important;
+  }
+  
+  /* ---------- Logo ---------- */
+  header .navbar-brand {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 0 16px 0 !important;
+    padding: 8px 12px !important;
+    transition: transform 0.3s ease;
+  }
+  
+  header .navbar-brand:hover {
+    transform: scale(1.05);
+  }
+  
+  header .navbar-brand img {
+    height: auto !important;
+    width: 100% !important;
+    max-width: 180px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(236, 72, 153, 0.45));
+    border-radius: 12px;
+  }
+  
+  /* ---------- Botão hamburguer (mobile) ---------- */
+  header .navbar-toggler {
+    align-self: center;
+    border: 1px solid rgba(224, 231, 255, 0.25);
+    padding: 8px 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  
+  header .navbar-toggler:focus {
+    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.35);
+  }
+  
+  /* ---------- Menu collapsible colado na logo ---------- */
+  header .navbar-collapse {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    flex-grow: 0 !important;
+    width: 100%;
+    margin-top: 4px;
+  }
+  
+  /* ---------- Lista de links ---------- */
+  header .navbar-nav {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px;
+    width: 100%;
+    text-align: left !important;
+  }
+  
+  header .nav-item {
+    width: 100%;
+  }
+  
+  header .nav-link {
+    color: var(--sidebar-text) !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    padding: 12px 16px !important;
+    border-radius: 10px;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
+    position: relative;
+    display: block;
+  }
+  
+  header .nav-link:hover {
+    background: var(--sidebar-hover);
+    color: #ffffff !important;
+    transform: translateX(3px);
+  }
+  
+  /* Link ativo — faixa coral lateral */
+  header .nav-item.active .nav-link {
+    background: var(--sidebar-active);
+    color: #ffffff !important;
+  }
+  
+  header .nav-item.active .nav-link::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 4px;
+    background: var(--accent);
+    border-radius: 0 4px 4px 0;
+  }
+  
+  /* ---------- Dropdown do usuário ---------- */
+  header .dropdown {
+    margin: 6px 0 0 0 !important;
+    width: 100%;
+  }
+  
+  header #user-info {
+    width: 100%;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(224, 231, 255, 0.25);
+    color: var(--sidebar-text);
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 12px 16px;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+  
+  header #user-info:hover,
+  header #user-info:focus {
+    background: var(--sidebar-hover);
+    border-color: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2);
+  }
+  
+  header .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    margin-top: 6px;
+    padding: 6px;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  header .dropdown-item {
+    color: var(--sidebar-text) !important;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-weight: 500;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  
+  header .dropdown-item:hover {
+    background: var(--sidebar-active) !important;
+    color: #ffffff !important;
+  }
+  
+  header .dropdown-divider {
+    border-color: rgba(224, 231, 255, 0.15);
+  }
+  
+  /* ============================================================
+     MAIN — centraliza conteúdo E respeita a sidebar
+     ============================================================ */
+  main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 160px);
+    background: linear-gradient(135deg, var(--bg-soft) 0%, var(--bg-softer) 100%);
+    padding: 20px;
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+  }
+  
+  footer {
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+  }
+  
+  /* ============================================================
+     GRID DE PRODUTOS
+     ============================================================ */
+  .grid-produtos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+  }
+  
+  /* ============================================================
+     CARDS
+     ============================================================ */
+  .card {
+    background: #ffffff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-top: 5px solid var(--accent);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  
+  .card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+  }
+  
+  .card img {
+    width: 100%;
+    height: 150px;
+    object-fit: contain;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .nome-produto {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--primary-dark);
+  }
+  
+  .info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  
+  .descricao {
+    font-size: 14px;
+    color: var(--text-muted);
+    flex: 1;
+  }
+  
+  .preco {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    margin-left: 10px;
+    white-space: nowrap;
+  }
+  
+  /* ============================================================
+     FORMULÁRIO
+     ============================================================ */
+  form {
+    background: #ffffff;
+    padding: 40px 45px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    border-top: 6px solid var(--accent);
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+  }
+  
+  form::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  
+  form h1 {
+    color: var(--primary-dark);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 25px;
+  }
+  
+  /* ============================================================
+     LABELS
+     ============================================================ */
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--primary-dark);
+    font-size: 0.92rem;
+  }
+  
+  /* ============================================================
+     INPUTS
+     ============================================================ */
+  .input_texto,
+  select {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: var(--text);
+    background-color: #f9fafb;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease,
+                background-color 0.25s ease;
+  }
+  
+  .input_texto::placeholder {
+    color: #9ca3af;
+  }
+  
+  .input_texto:hover,
+  select:hover {
+    border-color: var(--primary-light);
+  }
+  
+  .input_texto:focus,
+  select:focus {
+    outline: none;
+    background-color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  }
+  
+  .input_texto[readonly] {
+    background-color: #f3f4f6;
+    color: var(--text-muted);
+    cursor: not-allowed;
+    border: 1.5px solid var(--border);
+  }
+  
+  select:disabled {
+    background-color: #f3f4f6;
+    color: var(--text-muted);
+    cursor: not-allowed;
+    border: 1.5px solid var(--border);
+  }
+  
+  /* ============================================================
+     BOTÃO ENVIAR
+     ============================================================ */
+  .btn_enviar {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.25s ease;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+  }
+  
+  .btn_enviar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(99, 102, 241, 0.45);
+    filter: brightness(1.05);
+  }
+  
+  .btn_enviar:active {
+    transform: translateY(0);
+  }
+  
+  .btn_enviar:disabled {
+    background: linear-gradient(135deg, #a5b4fc 0%, #f9a8d4 100%);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    filter: none;
+  }
+  
+  /* ============================================================
+     LINKS
+     ============================================================ */
+  form a {
+    color: var(--primary-dark);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  form a:hover {
+    color: var(--accent-dark);
+    text-decoration: underline;
+  }
+  
+  /* ============================================================
+     RESPONSIVO
+     ============================================================ */
+  @media (max-width: 992px) {
+    .grid-produtos {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 991.98px) {
+    header {
+      position: sticky;
+      height: auto;
+      width: 100%;
+      overflow: visible;
+      box-shadow: 0 4px 18px rgba(30, 27, 75, 0.35);
+    }
+  
+    header .navbar {
+      padding: 10px 16px !important;
+    }
+  
+    header .navbar > .container-fluid {
+      flex-direction: row !important;
+      flex-wrap: wrap;
+      align-items: center !important;
+      padding: 0 !important;
+      gap: 12px;
+    }
+  
+    header .navbar-brand {
+      margin: 0 !important;
+    }
+  
+    header .navbar-brand img {
+      height: 55px !important;
+    }
+  
+    header .navbar-toggler {
+      margin-left: auto;
+      margin-bottom: 0;
+    }
+  
+    header .navbar-collapse {
+      flex-basis: 100%;
+      margin-top: 12px;
+    }
+  
+    header .navbar-nav {
+      gap: 4px;
+    }
+  
+    main {
+      margin-left: 0 !important;
+      min-height: calc(100vh - 200px) !important;
+      padding: 24px 16px !important;
+    }
+  
+    footer {
+      margin-left: 0 !important;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .grid-produtos {
+      grid-template-columns: 1fr;
+    }
+  
+    form {
+      padding: 30px 22px;
+    }
+  
+    form h1 {
+      font-size: 1.5rem;
+    }
+  }
