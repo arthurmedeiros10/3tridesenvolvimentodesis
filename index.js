@@ -83,24 +83,82 @@ app.get("/produto", async (req, res) => {
     try {
         let sql = "SELECT * FROM produto WHERE 1=1"
         const params = []
-        // Query Parameter
-        const { busca, ordenacao } = req.query
-        let resultado
+
+        // Query Parameters
+        const { busca, ordenacao, categoria, preco_min, preco_max, pagina } = req.query
+
+        // 1) Busca por nome (já existia)
         if (busca) {
             sql += " AND nome LIKE ?"
             params.push(`%${busca}%`)
-        } 
+        }
+
+        // 2) Filtro por categoria (ex: categoria=Alimentação)
+        if (categoria) {
+            sql += " AND categoria = ?"
+            params.push(categoria)
+        }
+
+        // 3) Filtro por faixa de preço
+        if (preco_min !== undefined && preco_min !== "") {
+            sql += " AND preco >= ?"
+            params.push(Number(preco_min))
+        }
+        if (preco_max !== undefined && preco_max !== "") {
+            sql += " AND preco <= ?"
+            params.push(Number(preco_max))
+        }
+
+        // 4) Ordenação (já existia)
         if (ordenacao) {
-            if (ordenacao == "maior preco") {
+            if (ordenacao === "maior preco") {
                 sql += " ORDER BY preco DESC"
             } else {
                 sql += " ORDER BY preco ASC"
             }
         }
-        resultado = await db.pool.query(sql, params)
-        res.status(200).json(resultado[0])
+
+        // 5) Paginação (LIMIT fixo de 10 + OFFSET dinâmico)
+        const LIMIT = 10
+        const paginaAtual = Math.max(1, parseInt(pagina) || 1)
+        const offset = (paginaAtual - 1) * LIMIT
+        sql += " LIMIT ? OFFSET ?"
+        params.push(LIMIT, offset)
+
+        const resultado = await db.pool.query(sql, params)
+
+        // Total de itens (sem paginação) — para o front saber quantas páginas existem
+        let sqlCount = "SELECT COUNT(*) AS total FROM produto WHERE 1=1"
+        const paramsCount = []
+        if (busca) {
+            sqlCount += " AND nome LIKE ?"
+            paramsCount.push(`%${busca}%`)
+        }
+        if (categoria) {
+            sqlCount += " AND categoria = ?"
+            paramsCount.push(categoria)
+        }
+        if (preco_min !== undefined && preco_min !== "") {
+            sqlCount += " AND preco >= ?"
+            paramsCount.push(Number(preco_min))
+        }
+        if (preco_max !== undefined && preco_max !== "") {
+            sqlCount += " AND preco <= ?"
+            paramsCount.push(Number(preco_max))
+        }
+        const countResult = await db.pool.query(sqlCount, paramsCount)
+        const total = countResult[0][0].total
+        const totalPaginas = Math.ceil(total / LIMIT)
+
+        res.status(200).json({
+            produtos: resultado[0],
+            pagina: paginaAtual,
+            limite: LIMIT,
+            total,
+            total_paginas: totalPaginas
+        })
     } catch (error) {
-        res.status(500).json({erro: error.message})
+        res.status(500).json({ erro: error.message })
     }
 })
 

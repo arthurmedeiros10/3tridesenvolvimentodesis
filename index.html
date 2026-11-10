@@ -44,8 +44,27 @@
         </nav>
     </header>
     <main class="d-flex justify-content-center align-items-center">
-        <h1>Produtos deveriam aparecer aqui!</h1>
-    </main>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 1200px; margin: 0 auto;">
+                <h1 style="color: var(--primary-dark); font-weight: 700;">Nossos Produtos</h1>
+                <span id="contador-produtos" class="badge" style="background: var(--accent); font-size: 0.9rem; padding: 8px 14px; border-radius: 20px;">0 itens</span>
+            </div>
+            
+            <div id="loading" class="text-center py-5">
+                <div class="spinner-border" style="color: var(--primary);" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-3" style="color: var(--text-muted);">Buscando produtos...</p>
+            </div>
+
+            <div id="grid-produtos" class="grid-produtos"></div>
+            
+            <div id="erro-api" class="alert alert-warning text-center mt-4" style="display: none; max-width: 600px; margin: 0 auto; border-radius: 12px;">
+                ⚠️ Não foi possível conectar à API. Exibindo catálogo local.
+            </div>
+        </div>
+    </main>  
+    <script src="./produtos.js"></script>
     <div class="position-fixed" style="top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1050;">
         <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
             <div class="d-flex">
